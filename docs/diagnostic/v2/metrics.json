@@ -1,0 +1,14 @@
+{
+  "smoke_pass": 10,
+  "smoke_total": 10,
+  "webfetch_adoption": 100,
+  "avg_calls": 4.0625,
+  "overall_judge": 4.762499999999999,
+  "prompts_run": 16,
+  "perfect_count": 8,
+  "judge_tool_selection": 5,
+  "judge_flag_correctness": 4.875,
+  "judge_workflow_adherence": 4.6875,
+  "judge_efficiency": 4.5,
+  "judge_answer_quality": 4.75
+}
