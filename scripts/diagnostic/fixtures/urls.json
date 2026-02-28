@@ -1,0 +1,123 @@
+[
+  {
+    "id": "S-01",
+    "url": "https://example.com",
+    "description": "Direct fetch, basic HTML",
+    "flags": [],
+    "expect": {
+      "exit_code": 0,
+      "tier": "direct",
+      "output_ext": ".md",
+      "min_content_length": 100
+    }
+  },
+  {
+    "id": "S-02",
+    "url": "https://httpbin.org/html",
+    "description": "Direct fetch, clean HTML body",
+    "flags": [],
+    "expect": {
+      "exit_code": 0,
+      "tier": "direct",
+      "output_ext": ".md",
+      "min_content_length": 100
+    }
+  },
+  {
+    "id": "S-03",
+    "url": "https://httpbin.org/status/403",
+    "description": "Block detection (403)",
+    "flags": ["--tier", "direct"],
+    "expect": {
+      "exit_code": 1,
+      "tier": null,
+      "output_ext": null,
+      "min_content_length": null
+    }
+  },
+  {
+    "id": "S-04",
+    "url": "https://httpbin.org/status/429",
+    "description": "Rate limit detection (429)",
+    "flags": ["--tier", "direct"],
+    "expect": {
+      "exit_code": 1,
+      "tier": null,
+      "output_ext": null,
+      "min_content_length": null
+    }
+  },
+  {
+    "id": "S-05",
+    "url": "https://en.wikipedia.org/wiki/Web_scraping",
+    "description": "Large page, readability extraction",
+    "flags": [],
+    "expect": {
+      "exit_code": 0,
+      "tier": "direct",
+      "output_ext": ".md",
+      "min_content_length": 1000
+    }
+  },
+  {
+    "id": "S-06",
+    "url": "https://www.allrecipes.com/recipe/10813/best-chocolate-chip-cookies/",
+    "description": "JSON-LD extraction (recipe page)",
+    "flags": ["--jsonld"],
+    "expect": {
+      "exit_code": 0,
+      "tier": "direct",
+      "output_ext": ".json",
+      "min_content_length": 50
+    }
+  },
+  {
+    "id": "S-07",
+    "url": "https://example.com",
+    "description": "Raw HTML mode",
+    "flags": ["--raw"],
+    "expect": {
+      "exit_code": 0,
+      "tier": "direct",
+      "output_ext": ".html",
+      "min_content_length": 100
+    }
+  },
+  {
+    "id": "S-08",
+    "url": "https://example.com",
+    "description": "Cache hit (after S-01/S-07)",
+    "flags": [],
+    "expect": {
+      "exit_code": 0,
+      "tier": null,
+      "output_ext": null,
+      "min_content_length": null,
+      "expect_cached": true
+    }
+  },
+  {
+    "id": "S-09",
+    "url": "https://httpbin.org/redirect/2",
+    "description": "Redirect following",
+    "flags": [],
+    "expect": {
+      "exit_code": 0,
+      "tier": "direct",
+      "output_ext": ".md",
+      "min_content_length": 10
+    }
+  },
+  {
+    "id": "S-10",
+    "url": "https://nowsecure.nl",
+    "description": "Cloudflare-protected site (block detection)",
+    "flags": ["--tier", "direct"],
+    "expect": {
+      "exit_code": 1,
+      "tier": null,
+      "output_ext": null,
+      "min_content_length": null
+    }
+  }
+]
