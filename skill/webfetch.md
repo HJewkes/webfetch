@@ -22,12 +22,15 @@ The key pattern is **fetch to file, then selectively read**:
 ```bash
 # 1. Fetch the page (auto-selects tier, extracts content, writes to file)
 webfetch https://example.com/product-page
+# → Saved to /tmp/webfetch/example.com/product-page-a1b2c3.md (12.4KB, ~3200 tokens)
 
 # 2. Read the output file (path is printed in the summary)
 # Use Read tool on the .md file, or Grep to search it
 ```
 
 **Never** pipe webfetch output directly into context. Always use the file path from the summary line.
+
+**If the fetch fails** (error, 403, all tiers exhausted) and no file is written, skip the read step. Report the failure directly from the CLI output — don't attempt to read a nonexistent file.
 
 ## Commands
 
@@ -64,6 +67,8 @@ You do NOT need to manually retry with `--tier`. Just run `webfetch <url>` and i
 
 ## Decision Tree
 
+> **Step 0 — Always check Known Hard Blocks below first.** If the site is listed there, skip the decision tree and use the indicated method directly.
+
 **For product/e-commerce pages:**
 1. Try `--jsonld` first — ~40% embed structured data (price, name, availability)
 2. If no JSON-LD, use default auto mode (readability + markdown)
@@ -81,12 +86,17 @@ You do NOT need to manually retry with `--tier`. Just run `webfetch <url>` and i
 
 ## Known Hard Blocks
 
-Some sites block all fetch methods including Bright Data:
-- **allrecipes.com** — blocks direct, stealth, and unlocker tiers. Use `browse` mode.
+Some sites block all fetch methods including Bright Data. **Check this list before applying the Decision Tree** — if the target URL matches, skip straight to the indicated method:
+
+- **allrecipes.com** — blocks direct, stealth, and unlocker tiers. Use `browse` mode directly. Do not try `--jsonld` or default auto mode first — they will waste calls escalating through tiers that are guaranteed to fail.
+
+## Troubleshooting
+
+- **Stale or unexpected cached result?** Re-run with `--no-cache` to force a fresh fetch. Do not manually edit cache files.
 
 ## Context Budgeting
 
-The summary line includes an estimated token count. Use this to decide how to read the output:
+The summary line (e.g. `Saved to /tmp/webfetch/.../page-a1b2c3.md (12.4KB, ~3200 tokens)`) includes an estimated token count. Use this to decide how to read the output — don't run `wc -l` or similar commands to estimate size:
 
 - **< 2000 tokens**: Safe to Read the whole file
 - **2000-8000 tokens**: Read the file but consider if you need all of it
@@ -107,7 +117,7 @@ webfetch https://site.com/product-b
 webfetch https://site.com/product-c
 ```
 
-Then use Grep across the output directory to compare specific attributes.
+Read the token count from each summary line to plan your reads — apply the Context Budgeting thresholds above per-file. For one-sentence summaries, a targeted Read with `limit` is usually sufficient even for large files. Use Grep across the output directory to compare specific attributes.
 
 ## Configuration
 
