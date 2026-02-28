@@ -1,15 +1,14 @@
 export function extractJsonLd(html: string): Record<string, any> | null {
   const regex = /<script\s+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
-  let match: RegExpExecArray | null;
+  let match: RegExpExecArray | null = regex.exec(html);
 
-  while ((match = regex.exec(html)) !== null) {
+  while (match !== null) {
     try {
       const data = JSON.parse(match[1]);
       const product = findProduct(data);
       if (product) return product;
-    } catch {
-      continue;
-    }
+    } catch {}
+    match = regex.exec(html);
   }
   return null;
 }

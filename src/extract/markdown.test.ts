@@ -1,9 +1,10 @@
-import { describe, it, expect } from 'vitest';
-import { htmlToMarkdown, estimateTokens } from './markdown.js';
+import { describe, expect, it } from 'vitest';
+import { estimateTokens, htmlToMarkdown } from './markdown.js';
 
 describe('htmlToMarkdown', () => {
   it('converts HTML to clean markdown', () => {
-    const html = '<h1>Title</h1><p>Paragraph with <strong>bold</strong> and <a href="https://example.com">link</a>.</p>';
+    const html =
+      '<h1>Title</h1><p>Paragraph with <strong>bold</strong> and <a href="https://example.com">link</a>.</p>';
     const md = htmlToMarkdown(html);
     expect(md).toContain('# Title');
     expect(md).toContain('**bold**');
@@ -11,7 +12,8 @@ describe('htmlToMarkdown', () => {
   });
 
   it('preserves tables', () => {
-    const html = '<table><tr><th>Name</th><th>Price</th></tr><tr><td>Stool</td><td>$499</td></tr></table>';
+    const html =
+      '<table><tr><th>Name</th><th>Price</th></tr><tr><td>Stool</td><td>$499</td></tr></table>';
     const md = htmlToMarkdown(html);
     expect(md).toContain('Name');
     expect(md).toContain('$499');

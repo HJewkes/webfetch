@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { TierName } from '../fetch/types.js';
 
@@ -19,7 +19,10 @@ export class Cache {
   private cacheFile: string;
   private domainsFile: string;
 
-  constructor(private dir: string, private ttlSeconds: number) {
+  constructor(
+    private dir: string,
+    private ttlSeconds: number,
+  ) {
     this.cacheFile = join(dir, 'cache.json');
     this.domainsFile = join(dir, 'domains.json');
     this.data = this.load();
@@ -32,12 +35,16 @@ export class Cache {
         const raw = JSON.parse(readFileSync(this.cacheFile, 'utf-8'));
         data.entries = raw.entries ?? {};
       }
-    } catch { /* start fresh */ }
+    } catch {
+      /* start fresh */
+    }
     try {
       if (existsSync(this.domainsFile)) {
         data.domains = JSON.parse(readFileSync(this.domainsFile, 'utf-8'));
       }
-    } catch { /* start fresh */ }
+    } catch {
+      /* start fresh */
+    }
     return data;
   }
 
@@ -78,7 +85,9 @@ export class Cache {
       try {
         const hostname = new URL(entry.url).hostname.replace(/^www\./, '');
         if (hostname === domain) delete this.data.entries[url];
-      } catch { /* skip bad URLs */ }
+      } catch {
+        /* skip bad URLs */
+      }
     }
     delete this.data.domains[domain];
     this.save();

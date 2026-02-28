@@ -1,13 +1,13 @@
-import { request, interceptors } from 'undici';
-import { Agent } from 'undici';
-import type { FetchResult } from './types.js';
+import { Agent, interceptors, request } from 'undici';
 import { VERSION } from '../index.js';
+import type { FetchResult } from './types.js';
 
 const redirectAgent = new Agent().compose(interceptors.redirect({ maxRedirections: 5 }));
 
 const BROWSER_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+  'User-Agent':
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+  Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
   'Accept-Language': 'en-US,en;q=0.9',
   'Accept-Encoding': 'gzip, deflate, br',
   'Cache-Control': 'no-cache',
@@ -32,7 +32,11 @@ export async function directFetch(
 
   const headers = browserHeaders ? BROWSER_HEADERS : { 'User-Agent': `webfetch/${VERSION}` };
 
-  const { statusCode, headers: resHeaders, body } = await request(url, {
+  const {
+    statusCode,
+    headers: resHeaders,
+    body,
+  } = await request(url, {
     headers,
     dispatcher: redirectAgent,
     headersTimeout: timeoutMs,

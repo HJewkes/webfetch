@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { extractionPipeline, type ExtractionResult } from './pipeline.js';
+import { describe, expect, it } from 'vitest';
+import { extractionPipeline } from './pipeline.js';
 
 describe('extractionPipeline', () => {
   it('returns JSON-LD when present', async () => {
@@ -8,7 +8,7 @@ describe('extractionPipeline', () => {
     </head><body><p>Content</p></body></html>`;
     const result = await extractionPipeline(html, 'https://example.com');
     expect(result.jsonld).not.toBeNull();
-    expect(result.jsonld!.name).toBe('Test');
+    expect(result.jsonld?.name).toBe('Test');
   });
 
   it('falls through to readability + markdown when no JSON-LD', async () => {

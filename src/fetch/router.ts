@@ -31,10 +31,14 @@ export function createRouter(config: RouterConfig) {
 
   function getFetcher(tier: TierName): FetchFn | null {
     switch (tier) {
-      case 'direct': return config.directFetch;
-      case 'stealth': return config.stealthFetch ?? null;
-      case 'unlocker': return config.unlockerFetch ?? null;
-      case 'browser': return config.browserFetch ?? null;
+      case 'direct':
+        return config.directFetch;
+      case 'stealth':
+        return config.stealthFetch ?? null;
+      case 'unlocker':
+        return config.unlockerFetch ?? null;
+      case 'browser':
+        return config.browserFetch ?? null;
     }
   }
 

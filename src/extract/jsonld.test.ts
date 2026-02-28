@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { extractJsonLd } from './jsonld.js';
 
 describe('extractJsonLd', () => {
@@ -8,8 +8,8 @@ describe('extractJsonLd', () => {
     </head><body></body></html>`;
     const result = extractJsonLd(html);
     expect(result).not.toBeNull();
-    expect(result!.name).toBe('Test Stool');
-    expect(result!.offers.price).toBe('499');
+    expect(result?.name).toBe('Test Stool');
+    expect(result?.offers.price).toBe('499');
   });
 
   it('returns null when no JSON-LD present', () => {
@@ -23,11 +23,12 @@ describe('extractJsonLd', () => {
       <script type="application/ld+json">{"@type":"Product","name":"Found It"}</script>
     </head></html>`;
     const result = extractJsonLd(html);
-    expect(result!.name).toBe('Found It');
+    expect(result?.name).toBe('Found It');
   });
 
   it('handles malformed JSON gracefully', () => {
-    const html = '<html><head><script type="application/ld+json">{broken json</script></head></html>';
+    const html =
+      '<html><head><script type="application/ld+json">{broken json</script></head></html>';
     expect(extractJsonLd(html)).toBeNull();
   });
 });

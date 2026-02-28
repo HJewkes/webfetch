@@ -1,17 +1,17 @@
 #!/usr/bin/env node
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { Command } from 'commander';
-import { writeFileSync, mkdirSync, rmSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { Cache } from './cache/cache.js';
 import { loadConfig, type TierName } from './config.js';
+import { extractJsonLd } from './extract/jsonld.js';
+import { extractionPipeline } from './extract/pipeline.js';
+import { unlockerFetch } from './fetch/brightdata.js';
 import { directFetch } from './fetch/direct.js';
 import { stealthFetch } from './fetch/patchright.js';
-import { unlockerFetch } from './fetch/brightdata.js';
 import { createRouter } from './fetch/router.js';
-import { extractionPipeline } from './extract/pipeline.js';
-import { extractJsonLd } from './extract/jsonld.js';
-import { writeOutput, buildOutputPath } from './output/writer.js';
-import { Cache } from './cache/cache.js';
 import { VERSION } from './index.js';
+import { buildOutputPath, writeOutput } from './output/writer.js';
 
 const program = new Command();
 
@@ -150,7 +150,7 @@ program
       return;
     }
 
-    const extraction = await extractionPipeline(html, 'file://' + file);
+    const extraction = await extractionPipeline(html, `file://${file}`);
     if (options.format === 'json') {
       console.log(JSON.stringify(extraction, null, 2));
     } else {

@@ -1,9 +1,12 @@
-import { describe, it, expect } from 'vitest';
-import { detectBlock, type BlockResult } from './blocker.js';
+import { describe, expect, it } from 'vitest';
+import { detectBlock } from './blocker.js';
 
 describe('detectBlock', () => {
   it('returns not blocked for normal content', () => {
-    const result = detectBlock(200, '<html><body><h1>Product Page</h1><p>Lots of real content here about a product with description and pricing information.</p></body></html>');
+    const result = detectBlock(
+      200,
+      '<html><body><h1>Product Page</h1><p>Lots of real content here about a product with description and pricing information.</p></body></html>',
+    );
     expect(result.blocked).toBe(false);
   });
 
@@ -20,7 +23,8 @@ describe('detectBlock', () => {
   });
 
   it('detects Cloudflare challenge', () => {
-    const html = '<html><head><title>Just a moment...</title></head><body>Checking your browser</body></html>';
+    const html =
+      '<html><head><title>Just a moment...</title></head><body>Checking your browser</body></html>';
     const result = detectBlock(200, html);
     expect(result.blocked).toBe(true);
     expect(result.reason).toBe('cloudflare');
@@ -34,7 +38,8 @@ describe('detectBlock', () => {
   });
 
   it('detects PerimeterX challenge', () => {
-    const html = '<html><head><script src="/px/challenge"></script></head><body><div id="px-captcha"></div></body></html>';
+    const html =
+      '<html><head><script src="/px/challenge"></script></head><body><div id="px-captcha"></div></body></html>';
     const result = detectBlock(200, html);
     expect(result.blocked).toBe(true);
     expect(result.reason).toBe('perimeterx');
@@ -47,7 +52,10 @@ describe('detectBlock', () => {
   });
 
   it('does not flag short but legitimate pages', () => {
-    const result = detectBlock(200, '<html><body><h1>404 - Page Not Found</h1><p>The page you requested could not be found.</p></body></html>');
+    const result = detectBlock(
+      200,
+      '<html><body><h1>404 - Page Not Found</h1><p>The page you requested could not be found.</p></body></html>',
+    );
     expect(result.blocked).toBe(false);
   });
 });

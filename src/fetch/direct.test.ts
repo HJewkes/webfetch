@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { directFetch } from './direct.js';
 
 vi.mock('undici', () => {
@@ -62,6 +62,6 @@ describe('directFetch', () => {
     const result = await directFetch('https://httpbin.org/headers', { browserHeaders: true });
     const body = JSON.parse(result.html);
     expect(body.headers['User-Agent']).toContain('Mozilla');
-    expect(body.headers['Accept']).toBeDefined();
+    expect(body.headers.Accept).toBeDefined();
   });
 });

@@ -12,7 +12,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "tsc --noEmit",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "format": "biome format --write .",
+    "format:check": "biome check ."
   },
   "dependencies": {
     "commander": "^14.0.0",
@@ -23,6 +25,7 @@
     "undici": "^7.0.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.4",
     "@types/jsdom": "^21.1.0",
     "@types/node": "^22.0.0",
     "tsx": "^4.0.0",

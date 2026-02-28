@@ -1,6 +1,6 @@
 import { extractJsonLd } from './jsonld.js';
+import { estimateTokens, htmlToMarkdown } from './markdown.js';
 import { extractContent } from './readability.js';
-import { htmlToMarkdown, estimateTokens } from './markdown.js';
 
 export interface ExtractionResult {
   jsonld: Record<string, any> | null;

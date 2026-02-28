@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { createRouter, type RouterResult } from './router.js';
+import { describe, expect, it, vi } from 'vitest';
+import { createRouter } from './router.js';
 import type { FetchResult } from './types.js';
 
 const okResult: FetchResult = {
@@ -26,12 +26,13 @@ describe('createRouter', () => {
     const router = createRouter({ directFetch, maxAuto: 'unlocker' });
     const result = await router.fetch('https://example.com');
     expect(result.success).toBe(true);
-    expect(result.result!.tier).toBe('direct');
+    expect(result.result?.tier).toBe('direct');
     expect(directFetch).toHaveBeenCalledTimes(1);
   });
 
   it('escalates from tier 0 to tier 1 on block', async () => {
-    const directFetch = vi.fn()
+    const directFetch = vi
+      .fn()
       .mockResolvedValueOnce(blockedResult)
       .mockResolvedValueOnce(okResult);
     const router = createRouter({ directFetch, maxAuto: 'unlocker' });

@@ -1,6 +1,6 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
 import { createHash } from 'node:crypto';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 
 export function slugify(urlPath: string): string {
   const cleaned = urlPath

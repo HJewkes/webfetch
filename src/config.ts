@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { homedir } from 'node:os';
+import { join } from 'node:path';
 import type { TierName } from './fetch/types.js';
 
 export type { TierName };
@@ -31,16 +31,11 @@ export const DEFAULT_CONFIG: WebfetchConfig = {
 };
 
 function loadRcFile(): Partial<WebfetchConfig> {
-  const paths = [
-    join(process.cwd(), '.webfetchrc'),
-    join(homedir(), '.webfetchrc'),
-  ];
+  const paths = [join(process.cwd(), '.webfetchrc'), join(homedir(), '.webfetchrc')];
   for (const p of paths) {
     try {
       return JSON.parse(readFileSync(p, 'utf-8'));
-    } catch {
-      continue;
-    }
+    } catch {}
   }
   return {};
 }

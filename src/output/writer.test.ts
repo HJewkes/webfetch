@@ -1,7 +1,6 @@
-import { describe, it, expect, afterEach } from 'vitest';
-import { writeOutput, slugify, buildOutputPath } from './writer.js';
-import { readFileSync, rmSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync, rmSync } from 'node:fs';
+import { afterEach, describe, expect, it } from 'vitest';
+import { buildOutputPath, slugify, writeOutput } from './writer.js';
 
 const TEST_DIR = '/tmp/webfetch-test';
 
@@ -11,7 +10,9 @@ afterEach(() => {
 
 describe('slugify', () => {
   it('converts URL path to filesystem-safe slug', () => {
-    expect(slugify('/products/layton-leather-swivel-bar-counter-stool/')).toBe('products-layton-leather-swivel-bar-counter-stool');
+    expect(slugify('/products/layton-leather-swivel-bar-counter-stool/')).toBe(
+      'products-layton-leather-swivel-bar-counter-stool',
+    );
   });
 
   it('handles empty path', () => {
@@ -19,7 +20,7 @@ describe('slugify', () => {
   });
 
   it('truncates long slugs', () => {
-    const long = '/' + 'a'.repeat(200);
+    const long = `/${'a'.repeat(200)}`;
     expect(slugify(long).length).toBeLessThanOrEqual(80);
   });
 });

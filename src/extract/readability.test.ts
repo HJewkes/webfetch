@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { extractContent } from './readability.js';
 
 describe('extractContent', () => {
@@ -10,9 +10,9 @@ describe('extractContent', () => {
     </body></html>`;
     const result = await extractContent(html, 'https://example.com');
     expect(result).not.toBeNull();
-    expect(result!.content).toContain('Main Article');
-    expect(result!.content).not.toContain('Copyright');
-    expect(result!.title).toBe('Test Page');
+    expect(result?.content).toContain('Main Article');
+    expect(result?.content).not.toContain('Copyright');
+    expect(result?.title).toBe('Test Page');
   });
 
   it('returns null for pages with insufficient content', async () => {

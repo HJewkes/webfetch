@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { existsSync, rmSync } from 'node:fs';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { Cache } from './cache.js';
-import { rmSync, existsSync } from 'node:fs';
 
 const TEST_DIR = '/tmp/webfetch-cache-test';
 
@@ -18,8 +18,8 @@ describe('Cache', () => {
     cache.set('https://example.com', '/tmp/webfetch/example.com/page.md', 'direct');
     const entry = cache.get('https://example.com');
     expect(entry).not.toBeNull();
-    expect(entry!.filePath).toBe('/tmp/webfetch/example.com/page.md');
-    expect(entry!.tier).toBe('direct');
+    expect(entry?.filePath).toBe('/tmp/webfetch/example.com/page.md');
+    expect(entry?.tier).toBe('direct');
   });
 
   it('returns null for expired entries', () => {

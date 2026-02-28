@@ -1,6 +1,6 @@
 import { request } from 'undici';
-import type { FetchResult } from './types.js';
 import { VERSION } from '../index.js';
+import type { FetchResult } from './types.js';
 
 export interface BrightDataConfig {
   token: string | null;
@@ -12,14 +12,13 @@ interface UnlockerOptions {
   timeoutMs?: number;
 }
 
-export async function unlockerFetch(
-  url: string,
-  options: UnlockerOptions,
-): Promise<FetchResult> {
+export async function unlockerFetch(url: string, options: UnlockerOptions): Promise<FetchResult> {
   const { config, timeoutMs = 30_000 } = options;
 
   if (!config.token) {
-    throw new Error('Bright Data API token not configured. Set BRIGHTDATA_API_TOKEN env var or add {"brightdata":{"token":"..."}} to .webfetchrc');
+    throw new Error(
+      'Bright Data API token not configured. Set BRIGHTDATA_API_TOKEN env var or add {"brightdata":{"token":"..."}} to .webfetchrc',
+    );
   }
 
   const start = performance.now();
@@ -27,7 +26,7 @@ export async function unlockerFetch(
   const { statusCode, body } = await request('https://api.brightdata.com/request', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${config.token}`,
+      Authorization: `Bearer ${config.token}`,
       'Content-Type': 'application/json',
       'User-Agent': `webfetch/${VERSION}`,
     },

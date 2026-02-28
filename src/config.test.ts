@@ -1,5 +1,5 @@
-import { describe, it, expect, afterEach, vi } from 'vitest';
-import { loadConfig, DEFAULT_CONFIG, type WebfetchConfig } from './config.js';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { loadConfig } from './config.js';
 
 describe('loadConfig', () => {
   afterEach(() => {
@@ -29,9 +29,12 @@ describe('loadConfig', () => {
   });
 
   it('domain overrides are preserved', () => {
-    const config = loadConfig({}, {
-      tiers: { domainOverrides: { 'example.com': 'stealth' } },
-    });
+    const config = loadConfig(
+      {},
+      {
+        tiers: { domainOverrides: { 'example.com': 'stealth' } },
+      },
+    );
     expect(config.tiers.domainOverrides['example.com']).toBe('stealth');
   });
 });
