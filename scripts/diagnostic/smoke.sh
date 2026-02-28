@@ -68,7 +68,7 @@ for i in $(seq 0 $((count - 1))); do
 
   # Output file
   if [ "$expected_ext" != "null" ]; then
-    output_file=$(echo "$stdout_content" | grep -oE 'Saved (to|raw HTML to|JSON-LD to) .+' | head -1 | sed 's/Saved \(to\|raw HTML to\|JSON-LD to\) //' || echo "")
+    output_file=$(echo "$stdout_content" | grep -oE 'Saved (to|raw HTML to|JSON-LD to) [^ ]+' | head -1 | sed -E 's/Saved (to|raw HTML to|JSON-LD to) //' || echo "")
     if [ -z "$output_file" ] || [ ! -f "$output_file" ]; then
       errors="${errors}output_file: not found; "
     elif [ "$min_length" != "null" ]; then

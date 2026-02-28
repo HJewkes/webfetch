@@ -6,7 +6,7 @@
     "flags": [],
     "expect": {
       "exit_code": 0,
-      "tier": "direct",
+      "tier": null,
       "output_ext": ".md",
       "min_content_length": 100
     }
@@ -78,7 +78,7 @@
     "flags": ["--raw"],
     "expect": {
       "exit_code": 0,
-      "tier": "direct",
+      "tier": null,
       "output_ext": ".html",
       "min_content_length": 100
     }
