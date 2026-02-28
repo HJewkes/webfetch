@@ -2,6 +2,7 @@
 import { Command } from 'commander';
 import { loadConfig, type TierName } from './config.js';
 import { directFetch } from './fetch/direct.js';
+import { stealthFetch } from './fetch/patchright.js';
 import { createRouter } from './fetch/router.js';
 import { extractionPipeline } from './extract/pipeline.js';
 import { extractJsonLd } from './extract/jsonld.js';
@@ -36,6 +37,7 @@ program
 
     const router = createRouter({
       directFetch,
+      stealthFetch,
       maxAuto: tier ?? config.tiers.maxAuto,
       domainOverrides: config.tiers.domainOverrides,
     });
