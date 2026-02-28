@@ -119,5 +119,17 @@
       "output_ext": ".md",
       "min_content_length": 10
     }
+  },
+  {
+    "id": "S-11",
+    "url": "https://www.allrecipes.com/recipe/10813/best-chocolate-chip-cookies/",
+    "description": "Hard block stretch goal (allrecipes JSON-LD)",
+    "flags": ["--jsonld"],
+    "expect": {
+      "exit_code": 0,
+      "tier": null,
+      "output_ext": ".json",
+      "min_content_length": 50
+    }
   }
 ]
