@@ -27,3 +27,16 @@ npx tsx src/cli.ts    # Run CLI in dev mode
 - `VERSION` is read from `package.json` via `src/index.ts` — never hardcode
 - Tests use vitest; mock external services (undici, patchright), not internal modules
 - Patchright tests are integration tests excluded from CI (require browser install)
+
+## Diagnostics
+
+```bash
+./scripts/diagnostic/run.sh v1              # Full diagnostic cycle
+./scripts/diagnostic/run.sh v1 --phase smoke # Smoke tests only
+./scripts/diagnostic/run.sh v1 --phase test-bench # AI test bench only
+./scripts/diagnostic/run.sh v1 --phase judge # Judge evaluation only
+./scripts/diagnostic/run.sh v1 --phase assemble # Assemble scorecard only
+./scripts/diagnostic/run.sh v1 --concurrency 2  # Limit parallel agents
+```
+
+Results are written to `docs/diagnostic/v<N>/scorecard.md`.
