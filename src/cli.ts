@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
+import { rmSync } from 'node:fs';
+import { join } from 'node:path';
 import { loadConfig, type TierName } from './config.js';
 import { directFetch } from './fetch/direct.js';
 import { stealthFetch } from './fetch/patchright.js';
@@ -8,6 +10,7 @@ import { createRouter } from './fetch/router.js';
 import { extractionPipeline } from './extract/pipeline.js';
 import { extractJsonLd } from './extract/jsonld.js';
 import { writeOutput, buildOutputPath } from './output/writer.js';
+import { Cache } from './cache/cache.js';
 import { VERSION } from './index.js';
 
 const program = new Command();
@@ -163,6 +166,52 @@ program
       });
       console.log(output.summary);
     }
+  });
+
+const cacheCmd = program.command('cache').description('Manage fetch cache');
+
+cacheCmd
+  .command('list')
+  .description('List cached entries')
+  .action(() => {
+    const config = loadConfig({});
+    const cache = new Cache(config.output.dir, config.cache.ttl);
+    const entries = cache.list();
+    if (entries.length === 0) {
+      console.log('Cache is empty.');
+      return;
+    }
+    for (const entry of entries) {
+      const age = Math.round((Date.now() - entry.timestamp) / 1000);
+      console.log(`${entry.url} → ${entry.filePath} (tier: ${entry.tier}, ${age}s ago)`);
+    }
+  });
+
+cacheCmd
+  .command('clear [domain]')
+  .description('Clear cache entries (optionally for a specific domain)')
+  .action((domain?: string) => {
+    const config = loadConfig({});
+    const cache = new Cache(config.output.dir, config.cache.ttl);
+    if (domain) {
+      cache.clearDomain(domain);
+      console.log(`Cleared cache for ${domain}`);
+    } else {
+      rmSync(join(config.output.dir, 'cache.json'), { force: true });
+      rmSync(join(config.output.dir, 'domains.json'), { force: true });
+      console.log('Cache cleared.');
+    }
+  });
+
+cacheCmd
+  .command('stats')
+  .description('Show cache statistics')
+  .action(() => {
+    const config = loadConfig({});
+    const cache = new Cache(config.output.dir, config.cache.ttl);
+    const stats = cache.stats();
+    console.log(`Cached URLs: ${stats.totalEntries}`);
+    console.log(`Known domains: ${stats.domains}`);
   });
 
 program.parse();
