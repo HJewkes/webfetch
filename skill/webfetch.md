@@ -54,22 +54,35 @@ webfetch browse <url>              # Launch local Patchright browser
 webfetch browse <url> --brightdata # Use Bright Data Scraping Browser
 ```
 
-## Decision Tree for Product Pages
+## Auto-Escalation
 
-1. **Try `--jsonld` first** — ~40% of e-commerce sites embed structured product data (price, name, images, availability). This is the cheapest and most accurate path.
-   ```bash
-   webfetch https://example.com/product --jsonld
-   ```
-   If JSON-LD is found, read the `.json` file — no need for full extraction.
+By default, `webfetch <url>` automatically escalates through tiers if blocked:
 
-2. **If no JSON-LD, use default auto mode** — this extracts clean markdown via readability + markdown conversion.
-   ```bash
-   webfetch https://example.com/product
-   ```
+**direct → browser headers → Patchright → Bright Data**
 
-3. **If blocked, the tool auto-escalates** — direct → browser headers → Patchright → Bright Data. Check the summary line for which tier succeeded.
+You do NOT need to manually retry with `--tier`. Just run `webfetch <url>` and it handles escalation. Use `--tier` only to **skip lower tiers** (e.g., `--tier stealth` to go straight to browser) or to **force a specific tier** for testing.
 
-4. **For JS configurators** (color pickers, size selectors), use browse mode — the static extraction won't capture dynamic state.
+## Decision Tree
+
+**For product/e-commerce pages:**
+1. Try `--jsonld` first — ~40% embed structured data (price, name, availability)
+2. If no JSON-LD, use default auto mode (readability + markdown)
+3. If blocked, auto-escalation handles it — don't manually retry with `--tier`
+4. For JS configurators (color pickers, size selectors), use `browse` mode
+
+**For general/documentation pages:**
+- Use default auto mode — don't use `--jsonld` (it's for structured product data)
+- Auto-escalation handles any blocks automatically
+
+**For blocked/challenge pages (403, Cloudflare, Akamai):**
+- Default auto mode auto-escalates — let it work
+- If you know the site needs a browser, use `--tier stealth` to skip direct tier
+- Check the summary line for which tier succeeded
+
+## Known Hard Blocks
+
+Some sites block all fetch methods including Bright Data:
+- **allrecipes.com** — blocks direct, stealth, and unlocker tiers. Use `browse` mode.
 
 ## Context Budgeting
 

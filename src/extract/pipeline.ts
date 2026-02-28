@@ -3,7 +3,7 @@ import { estimateTokens, htmlToMarkdown } from './markdown.js';
 import { extractContent } from './readability.js';
 
 export interface ExtractionResult {
-  jsonld: Record<string, any> | null;
+  jsonld: Record<string, any> | Record<string, any>[] | null;
   markdown: string;
   title: string;
   estimatedTokens: number;

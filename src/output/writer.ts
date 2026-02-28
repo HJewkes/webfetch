@@ -28,7 +28,7 @@ export function buildOutputPath(url: string, outputDir: string, ext: string): st
 interface WriteInput {
   url: string;
   markdown: string;
-  jsonld: Record<string, any> | null;
+  jsonld: Record<string, any> | Record<string, any>[] | null;
   title: string;
   estimatedTokens: number;
   outputDir: string;

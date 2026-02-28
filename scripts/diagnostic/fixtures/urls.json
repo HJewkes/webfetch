@@ -61,8 +61,8 @@
   },
   {
     "id": "S-06",
-    "url": "https://www.allrecipes.com/recipe/10813/best-chocolate-chip-cookies/",
-    "description": "JSON-LD extraction (recipe page)",
+    "url": "https://stackoverflow.com/questions/1732348/regex-match-open-tags-except-xhtml-self-contained-tags",
+    "description": "JSON-LD extraction (StackOverflow question)",
     "flags": ["--jsonld"],
     "expect": {
       "exit_code": 0,
@@ -111,13 +111,13 @@
   {
     "id": "S-10",
     "url": "https://nowsecure.nl",
-    "description": "Cloudflare-protected site (block detection)",
+    "description": "Cloudflare-protected site (fetches static shell)",
     "flags": ["--tier", "direct"],
     "expect": {
-      "exit_code": 1,
-      "tier": null,
-      "output_ext": null,
-      "min_content_length": null
+      "exit_code": 0,
+      "tier": "direct",
+      "output_ext": ".md",
+      "min_content_length": 10
     }
   }
 ]
