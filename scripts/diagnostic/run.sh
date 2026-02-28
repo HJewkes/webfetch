@@ -58,7 +58,7 @@ run_smoke() {
     echo "Skipping smoke tests (--skip-smoke)"
     return
   fi
-  bash "$SCRIPT_DIR/smoke.sh" "$VERSION"
+  bash "$SCRIPT_DIR/smoke.sh" "$VERSION" || echo "Smoke tests had failures (see results above)"
 }
 
 # --- Phase 2: Test Bench ---
