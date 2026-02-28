@@ -36,7 +36,8 @@ export function detectBlock(status: number, html: string): BlockResult {
     }
 
     const textContent = html.replace(/<[^>]+>/g, '').trim();
-    if (textContent.length < MIN_CONTENT_LENGTH && !html.includes('<h1>')) {
+    const hasSemanticContent = /<(h1|article|main|section)\b/i.test(html);
+    if (textContent.length < MIN_CONTENT_LENGTH && !hasSemanticContent) {
       return { blocked: true, reason: 'empty_body' };
     }
   }

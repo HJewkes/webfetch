@@ -1,6 +1,7 @@
 import { request, interceptors } from 'undici';
 import { Agent } from 'undici';
 import type { FetchResult } from './types.js';
+import { VERSION } from '../index.js';
 
 const redirectAgent = new Agent().compose(interceptors.redirect({ maxRedirections: 5 }));
 
@@ -29,7 +30,7 @@ export async function directFetch(
   const { browserHeaders = false, timeoutMs = 15_000 } = options;
   const start = performance.now();
 
-  const headers = browserHeaders ? BROWSER_HEADERS : { 'User-Agent': 'webfetch/0.1.0' };
+  const headers = browserHeaders ? BROWSER_HEADERS : { 'User-Agent': `webfetch/${VERSION}` };
 
   const { statusCode, headers: resHeaders, body } = await request(url, {
     headers,

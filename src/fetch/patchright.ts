@@ -13,7 +13,15 @@ export async function stealthFetch(
   const { timeoutMs = 30_000, waitFor } = options;
   const start = performance.now();
 
-  const browser = await chromium.launch({ headless: true });
+  let browser;
+  try {
+    browser = await chromium.launch({ headless: true });
+  } catch (err) {
+    throw new Error(
+      'Failed to launch Patchright browser. Run: npx patchright install chromium',
+      { cause: err },
+    );
+  }
   try {
     const context = await browser.newContext({
       viewport: { width: 1920, height: 1080 },

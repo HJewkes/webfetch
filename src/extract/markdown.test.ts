@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { htmlToMarkdown } from './markdown.js';
+import { htmlToMarkdown, estimateTokens } from './markdown.js';
 
 describe('htmlToMarkdown', () => {
   it('converts HTML to clean markdown', () => {
@@ -17,9 +17,16 @@ describe('htmlToMarkdown', () => {
     expect(md).toContain('$499');
   });
 
-  it('estimates token count', () => {
-    const html = '<p>Hello world</p>';
-    const md = htmlToMarkdown(html);
-    expect(md.length).toBeGreaterThan(0);
+  it('handles empty input', () => {
+    const md = htmlToMarkdown('');
+    expect(md).toBe('');
+  });
+});
+
+describe('estimateTokens', () => {
+  it('estimates roughly 1 token per 4 characters', () => {
+    expect(estimateTokens('hello world')).toBe(3);
+    expect(estimateTokens('')).toBe(0);
+    expect(estimateTokens('abcd')).toBe(1);
   });
 });

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { rmSync } from 'node:fs';
-import { join } from 'node:path';
+import { writeFileSync, mkdirSync, rmSync } from 'node:fs';
+import { join, dirname } from 'node:path';
 import { loadConfig, type TierName } from './config.js';
 import { directFetch } from './fetch/direct.js';
 import { stealthFetch } from './fetch/patchright.js';
@@ -26,6 +26,7 @@ program
   .option('--jsonld', 'Extract only JSON-LD structured data')
   .option('--output <dir>', 'Output directory')
   .option('--tier <tier>', 'Force a specific tier (direct|stealth|unlocker|browser)')
+  .option('--no-cache', 'Skip cache lookup and do not update cache')
   .action(async (url: string | undefined, options) => {
     if (!url) {
       program.help();
@@ -39,12 +40,33 @@ program
       tier,
     });
 
+    const cache = new Cache(config.output.dir, config.cache.ttl);
+    const useCache = options.cache !== false;
+
+    // Check cache before fetching
+    if (useCache) {
+      const cached = cache.get(url);
+      if (cached) {
+        console.error(`Cache hit: ${cached.filePath} (tier: ${cached.tier})`);
+        console.log(`Saved to ${cached.filePath} (cached)`);
+        return;
+      }
+    }
+
+    // Merge domain tier memory into overrides
+    const domainOverrides = { ...config.tiers.domainOverrides };
+    const hostname = new URL(url).hostname.replace(/^www\./, '');
+    const rememberedTier = cache.getDomainTier(hostname);
+    if (rememberedTier && !domainOverrides[hostname]) {
+      domainOverrides[hostname] = rememberedTier;
+    }
+
     const router = createRouter({
       directFetch,
       stealthFetch,
-      unlockerFetch: (url) => unlockerFetch(url, { config: config.brightdata }),
+      unlockerFetch: (fetchUrl) => unlockerFetch(fetchUrl, { config: config.brightdata }),
       maxAuto: tier ?? config.tiers.maxAuto,
-      domainOverrides: config.tiers.domainOverrides,
+      domainOverrides,
     });
 
     console.error(`Fetching ${url}...`);
@@ -61,11 +83,13 @@ program
     console.error(`Fetched via tier: ${result.tier} (${result.durationMs}ms)`);
 
     if (options.raw) {
-      const { writeFileSync, mkdirSync } = await import('node:fs');
-      const { dirname } = await import('node:path');
       const path = buildOutputPath(url, config.output.dir, 'html');
       mkdirSync(dirname(path), { recursive: true });
       writeFileSync(path, result.html, 'utf-8');
+      if (useCache) {
+        cache.set(url, path, result.tier);
+        cache.setDomainTier(hostname, result.tier);
+      }
       console.log(`Saved raw HTML to ${path}`);
       return;
     }
@@ -76,11 +100,13 @@ program
         console.error('No JSON-LD structured data found on this page.');
         process.exit(1);
       }
-      const { writeFileSync, mkdirSync } = await import('node:fs');
-      const { dirname } = await import('node:path');
       const path = buildOutputPath(url, config.output.dir, 'json');
       mkdirSync(dirname(path), { recursive: true });
       writeFileSync(path, JSON.stringify(jsonld, null, 2), 'utf-8');
+      if (useCache) {
+        cache.set(url, path, result.tier);
+        cache.setDomainTier(hostname, result.tier);
+      }
       console.log(`Saved JSON-LD to ${path}`);
       return;
     }
@@ -94,6 +120,11 @@ program
       estimatedTokens: extraction.estimatedTokens,
       outputDir: config.output.dir,
     });
+
+    if (useCache) {
+      cache.set(url, output.mdPath, result.tier);
+      cache.setDomainTier(hostname, result.tier);
+    }
 
     console.log(output.summary);
     if (output.jsonldPath) {
@@ -129,17 +160,18 @@ program
 
 program
   .command('browse <url>')
-  .description('Launch interactive browser for a URL')
-  .option('--brightdata', 'Use Bright Data Scraping Browser instead of local Patchright')
+  .description('Fetch a URL using Patchright stealth browser or Bright Data')
+  .option('--brightdata', 'Use Bright Data Web Unlocker instead of local Patchright')
   .action(async (url: string, opts) => {
+    const config = loadConfig({});
+
     if (opts.brightdata) {
-      const config = loadConfig({});
       if (!config.brightdata.token) {
         console.error('Bright Data API token not configured.');
+        console.error('Set BRIGHTDATA_API_TOKEN env var or add to .webfetchrc');
         process.exit(1);
       }
-      console.error('Bright Data Scraping Browser: connecting via CDP...');
-      console.error('(Interactive browser mode - implement CDP connection in future iteration)');
+      console.error('Fetching via Bright Data Web Unlocker...');
       const result = await unlockerFetch(url, { config: config.brightdata });
       const extraction = await extractionPipeline(result.html, url);
       const output = writeOutput({
@@ -152,10 +184,9 @@ program
       });
       console.log(output.summary);
     } else {
-      console.error('Launching Patchright browser...');
+      console.error('Fetching via Patchright stealth browser...');
       const result = await stealthFetch(url);
       const extraction = await extractionPipeline(result.html, url);
-      const config = loadConfig({});
       const output = writeOutput({
         url,
         markdown: extraction.markdown,

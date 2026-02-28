@@ -1,8 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
+import type { TierName } from './fetch/types.js';
 
-export type TierName = 'direct' | 'stealth' | 'unlocker' | 'browser';
+export type { TierName };
 
 export interface WebfetchConfig {
   output: {

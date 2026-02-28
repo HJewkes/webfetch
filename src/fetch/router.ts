@@ -10,7 +10,12 @@ export interface RouterResult {
   lastBlockReason?: string;
 }
 
-type FetchFn = (url: string, options?: any) => Promise<FetchResult>;
+interface FetchOptions {
+  browserHeaders?: boolean;
+  timeoutMs?: number;
+}
+
+type FetchFn = (url: string, options?: FetchOptions) => Promise<FetchResult>;
 
 interface RouterConfig {
   directFetch: FetchFn;

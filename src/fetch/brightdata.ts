@@ -1,5 +1,6 @@
 import { request } from 'undici';
 import type { FetchResult } from './types.js';
+import { VERSION } from '../index.js';
 
 export interface BrightDataConfig {
   token: string | null;
@@ -18,7 +19,7 @@ export async function unlockerFetch(
   const { config, timeoutMs = 30_000 } = options;
 
   if (!config.token) {
-    throw new Error('Bright Data API token not configured. Set BRIGHTDATA_API_TOKEN or run: webfetch config set brightdata.token <token>');
+    throw new Error('Bright Data API token not configured. Set BRIGHTDATA_API_TOKEN env var or add {"brightdata":{"token":"..."}} to .webfetchrc');
   }
 
   const start = performance.now();
@@ -28,7 +29,7 @@ export async function unlockerFetch(
     headers: {
       'Authorization': `Bearer ${config.token}`,
       'Content-Type': 'application/json',
-      'User-Agent': 'webfetch/0.1.0',
+      'User-Agent': `webfetch/${VERSION}`,
     },
     body: JSON.stringify({
       zone: config.zone,

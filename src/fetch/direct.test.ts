@@ -1,5 +1,48 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { directFetch } from './direct.js';
+
+vi.mock('undici', () => {
+  const mockRequest = vi.fn().mockImplementation(async (url: string, opts?: any) => {
+    const parsedUrl = new URL(url);
+
+    if (parsedUrl.hostname === 'example.com') {
+      return {
+        statusCode: 200,
+        headers: { 'content-type': 'text/html' },
+        body: { text: () => Promise.resolve('<html><body><h1>Example Domain</h1></body></html>') },
+      };
+    }
+
+    if (parsedUrl.pathname === '/status/403') {
+      return {
+        statusCode: 403,
+        headers: {},
+        body: { text: () => Promise.resolve('Forbidden') },
+      };
+    }
+
+    if (parsedUrl.pathname === '/headers') {
+      const reqHeaders = opts?.headers ?? {};
+      return {
+        statusCode: 200,
+        headers: { 'content-type': 'application/json' },
+        body: { text: () => Promise.resolve(JSON.stringify({ headers: reqHeaders })) },
+      };
+    }
+
+    return {
+      statusCode: 404,
+      headers: {},
+      body: { text: () => Promise.resolve('Not found') },
+    };
+  });
+
+  return {
+    request: mockRequest,
+    interceptors: { redirect: () => () => {} },
+    Agent: vi.fn().mockImplementation(() => ({ compose: () => ({}) })),
+  };
+});
 
 describe('directFetch', () => {
   it('fetches a simple page successfully', async () => {
@@ -7,7 +50,7 @@ describe('directFetch', () => {
     expect(result.status).toBe(200);
     expect(result.html).toContain('Example Domain');
     expect(result.tier).toBe('direct');
-    expect(result.durationMs).toBeGreaterThan(0);
+    expect(result.durationMs).toBeGreaterThanOrEqual(0);
   });
 
   it('returns status code on non-200 responses', async () => {
