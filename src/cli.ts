@@ -3,6 +3,7 @@ import { Command } from 'commander';
 import { loadConfig, type TierName } from './config.js';
 import { directFetch } from './fetch/direct.js';
 import { stealthFetch } from './fetch/patchright.js';
+import { unlockerFetch } from './fetch/brightdata.js';
 import { createRouter } from './fetch/router.js';
 import { extractionPipeline } from './extract/pipeline.js';
 import { extractJsonLd } from './extract/jsonld.js';
@@ -38,6 +39,7 @@ program
     const router = createRouter({
       directFetch,
       stealthFetch,
+      unlockerFetch: (url) => unlockerFetch(url, { config: config.brightdata }),
       maxAuto: tier ?? config.tiers.maxAuto,
       domainOverrides: config.tiers.domainOverrides,
     });
@@ -119,6 +121,47 @@ program
       console.log(JSON.stringify(extraction, null, 2));
     } else {
       console.log(extraction.markdown);
+    }
+  });
+
+program
+  .command('browse <url>')
+  .description('Launch interactive browser for a URL')
+  .option('--brightdata', 'Use Bright Data Scraping Browser instead of local Patchright')
+  .action(async (url: string, opts) => {
+    if (opts.brightdata) {
+      const config = loadConfig({});
+      if (!config.brightdata.token) {
+        console.error('Bright Data API token not configured.');
+        process.exit(1);
+      }
+      console.error('Bright Data Scraping Browser: connecting via CDP...');
+      console.error('(Interactive browser mode - implement CDP connection in future iteration)');
+      const result = await unlockerFetch(url, { config: config.brightdata });
+      const extraction = await extractionPipeline(result.html, url);
+      const output = writeOutput({
+        url,
+        markdown: extraction.markdown,
+        jsonld: extraction.jsonld,
+        title: extraction.title,
+        estimatedTokens: extraction.estimatedTokens,
+        outputDir: config.output.dir,
+      });
+      console.log(output.summary);
+    } else {
+      console.error('Launching Patchright browser...');
+      const result = await stealthFetch(url);
+      const extraction = await extractionPipeline(result.html, url);
+      const config = loadConfig({});
+      const output = writeOutput({
+        url,
+        markdown: extraction.markdown,
+        jsonld: extraction.jsonld,
+        title: extraction.title,
+        estimatedTokens: extraction.estimatedTokens,
+        outputDir: config.output.dir,
+      });
+      console.log(output.summary);
     }
   });
 
