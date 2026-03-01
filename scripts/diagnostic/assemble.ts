@@ -148,34 +148,35 @@ if (existsSync(join(prevDir, 'metrics.json'))) {
 // --- Compute Metrics ---
 
 // Smoke
-const smokePass = smokeResults.filter(r => r.status === 'pass').length;
+const smokePass = smokeResults.filter((r) => r.status === 'pass').length;
 const smokeTotal = smokeResults.length;
 
 // Test bench aggregates
 const totalCalls = testResults.reduce((s, r) => s + r.tool_calls_total, 0);
 const totalWebfetchCalls = testResults.reduce((s, r) => s + r.webfetch_calls, 0);
-const webfetchAdoption = testResults.length > 0
-  ? testResults.filter(r => r.tool_used === 'webfetch').length / testResults.length * 100
-  : 0;
-const avgCalls = avg(testResults.map(r => r.tool_calls_total));
-const answersProvided = testResults.filter(r => r.answer_provided).length;
+const webfetchAdoption =
+  testResults.length > 0
+    ? (testResults.filter((r) => r.tool_used === 'webfetch').length / testResults.length) * 100
+    : 0;
+const avgCalls = avg(testResults.map((r) => r.tool_calls_total));
+const answersProvided = testResults.filter((r) => r.answer_provided).length;
 
 // Judge aggregates
 const judgeArray = Array.from(judgeResults.values());
 const dimensions: (keyof JudgeScores)[] = [
-  'tool_selection', 'flag_correctness', 'workflow_adherence', 'efficiency', 'answer_quality',
+  'tool_selection',
+  'flag_correctness',
+  'workflow_adherence',
+  'efficiency',
+  'answer_quality',
 ];
 const dimAvgs: Record<string, number> = {};
 for (const dim of dimensions) {
-  dimAvgs[dim] = avg(judgeArray.map(j => j.scores[dim]));
+  dimAvgs[dim] = avg(judgeArray.map((j) => j.scores[dim]));
 }
-const overallAvg = avg(judgeArray.map(j =>
-  avg(dimensions.map(d => j.scores[d]))
-));
-const perfectCount = judgeArray.filter(j =>
-  dimensions.every(d => j.scores[d] === 5)
-).length;
-const allViolations = judgeArray.flatMap(j => j.violations);
+const overallAvg = avg(judgeArray.map((j) => avg(dimensions.map((d) => j.scores[d]))));
+const perfectCount = judgeArray.filter((j) => dimensions.every((d) => j.scores[d] === 5)).length;
+const allViolations = judgeArray.flatMap((j) => j.violations);
 
 // Save metrics for next version delta comparison
 const currentMetrics: Record<string, number> = {
@@ -186,7 +187,7 @@ const currentMetrics: Record<string, number> = {
   overall_judge: overallAvg,
   prompts_run: testResults.length,
   perfect_count: perfectCount,
-  ...Object.fromEntries(dimensions.map(d => [`judge_${d}`, dimAvgs[d]])),
+  ...Object.fromEntries(dimensions.map((d) => [`judge_${d}`, dimAvgs[d]])),
 };
 writeFileSync(join(RESULTS_DIR, 'metrics.json'), JSON.stringify(currentMetrics, null, 2));
 
@@ -227,9 +228,7 @@ md += `| Prompt | Calls | Tool | Flags | Workflow | Judge (O) | Violations |\n`;
 md += `|--------|-------|------|-------|----------|-----------|------------|\n`;
 for (const t of testResults) {
   const judge = judgeResults.get(t.id);
-  const judgeOverall = judge
-    ? fmt(avg(dimensions.map(d => judge.scores[d])))
-    : '—';
+  const judgeOverall = judge ? fmt(avg(dimensions.map((d) => judge.scores[d]))) : '—';
   const violations = judge ? judge.violations.length : 0;
   md += `| ${t.id} | ${t.tool_calls_total} | ${t.tool_used} | ${t.flags_used.join(', ') || '—'} | ${t.workflow} | ${judgeOverall}/5 | ${violations} |\n`;
 }
@@ -245,7 +244,7 @@ if (allViolations.length > 0) {
     byDim[v.dimension] = (byDim[v.dimension] ?? 0) + 1;
   }
   for (const [dim, count] of Object.entries(byDim).sort((a, b) => b[1] - a[1])) {
-    md += `| ${dim} | ${count} | ${fmt(count / allViolations.length * 100)}% |\n`;
+    md += `| ${dim} | ${count} | ${fmt((count / allViolations.length) * 100)}% |\n`;
   }
   md += `\nTotal violations across all prompts: ${allViolations.length}\n\n`;
 }

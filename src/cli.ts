@@ -4,14 +4,14 @@ import { dirname, join } from 'node:path';
 import { Command } from 'commander';
 import { Cache } from './cache/cache.js';
 import { loadConfig, type TierName } from './config.js';
+import { detectBlock } from './detect/blocker.js';
 import { extractJsonLd } from './extract/jsonld.js';
+import { estimateTokens } from './extract/markdown.js';
 import { extractionPipeline } from './extract/pipeline.js';
 import { unlockerFetch } from './fetch/brightdata.js';
 import { directFetch } from './fetch/direct.js';
 import { stealthFetch } from './fetch/patchright.js';
 import { createRouter } from './fetch/router.js';
-import { detectBlock } from './detect/blocker.js';
-import { estimateTokens } from './extract/markdown.js';
 import { VERSION } from './index.js';
 import { buildOutputPath, writeOutput } from './output/writer.js';
 
@@ -104,7 +104,9 @@ program
       }
       const rawTokens = estimateTokens(result.html);
       if (rawTokens < 50) {
-        console.error(`⚠ Content appears thin (~${rawTokens} tokens). The site may be soft-blocking — consider using browse mode.`);
+        console.error(
+          `⚠ Content appears thin (~${rawTokens} tokens). The site may be soft-blocking — consider using browse mode.`,
+        );
       }
       console.log(`Saved raw HTML to ${path}`);
       return;
@@ -143,7 +145,9 @@ program
     }
 
     if (extraction.estimatedTokens < 25) {
-      console.error(`⚠ Content appears thin (~${extraction.estimatedTokens} tokens). The site may be soft-blocking — consider using browse mode.`);
+      console.error(
+        `⚠ Content appears thin (~${extraction.estimatedTokens} tokens). The site may be soft-blocking — consider using browse mode.`,
+      );
     }
 
     console.log(output.summary);
@@ -201,7 +205,9 @@ program
       }
       const extraction = await extractionPipeline(result.html, url);
       if (extraction.estimatedTokens < 25) {
-        console.error(`⚠ Content appears thin (~${extraction.estimatedTokens} tokens). The site may be soft-blocking even with Bright Data.`);
+        console.error(
+          `⚠ Content appears thin (~${extraction.estimatedTokens} tokens). The site may be soft-blocking even with Bright Data.`,
+        );
       }
       const output = writeOutput({
         url,
@@ -223,7 +229,9 @@ program
       }
       const extraction = await extractionPipeline(result.html, url);
       if (extraction.estimatedTokens < 25) {
-        console.error(`⚠ Content appears thin (~${extraction.estimatedTokens} tokens). The site may be soft-blocking even with Patchright.`);
+        console.error(
+          `⚠ Content appears thin (~${extraction.estimatedTokens} tokens). The site may be soft-blocking even with Patchright.`,
+        );
       }
       const output = writeOutput({
         url,
