@@ -51,6 +51,21 @@ describe('detectBlock', () => {
     expect(result.reason).toBe('empty_body');
   });
 
+  it('detects meta refresh challenge', () => {
+    const html =
+      '<html><head><meta http-equiv="refresh" content="0;url=/challenge?token=abc"></head><body></body></html>';
+    const result = detectBlock(200, html);
+    expect(result.blocked).toBe(true);
+    expect(result.reason).toBe('meta_refresh_challenge');
+  });
+
+  it('does not flag meta refresh without challenge keyword', () => {
+    const html =
+      '<html><head><meta http-equiv="refresh" content="5;url=/home"></head><body><h1>Redirecting</h1><p>You will be redirected to the homepage shortly. Please wait while we process your request.</p></body></html>';
+    const result = detectBlock(200, html);
+    expect(result.blocked).toBe(false);
+  });
+
   it('does not flag short but legitimate pages', () => {
     const result = detectBlock(
       200,
