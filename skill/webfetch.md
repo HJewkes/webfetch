@@ -30,7 +30,7 @@ webfetch https://example.com/product-page
 
 **Never** pipe webfetch output directly into context. Always use the file path from the summary line.
 
-**If the fetch fails** (error, 403, all tiers exhausted) and no file is written, skip the read step. Report the failure directly from the CLI output — don't attempt to read a nonexistent file.
+**If the fetch fails** (error, 403, all tiers exhausted) and no file is written, skip the read step. Report the failure directly from the CLI output — don't attempt to read a nonexistent file. If a file is written but contains only a bot-challenge or error page (not the requested content), treat it the same as no file.
 
 ## Commands
 
