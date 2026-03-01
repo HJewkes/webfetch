@@ -50,6 +50,30 @@ describe('writeOutput', () => {
     expect(result.summary).toContain('~8 tokens');
   });
 
+  it('includes large-file hint when tokens exceed 8000', () => {
+    const result = writeOutput({
+      url: 'https://example.com/large',
+      markdown: 'x'.repeat(40000),
+      jsonld: null,
+      title: 'Large',
+      estimatedTokens: 10000,
+      outputDir: TEST_DIR,
+    });
+    expect(result.summary).toContain('large file, use Grep for targeted reading');
+  });
+
+  it('omits large-file hint for small files', () => {
+    const result = writeOutput({
+      url: 'https://example.com/small',
+      markdown: '# Small',
+      jsonld: null,
+      title: 'Small',
+      estimatedTokens: 100,
+      outputDir: TEST_DIR,
+    });
+    expect(result.summary).not.toContain('large file');
+  });
+
   it('writes JSON-LD file alongside markdown when present', () => {
     const result = writeOutput({
       url: 'https://example.com/product',

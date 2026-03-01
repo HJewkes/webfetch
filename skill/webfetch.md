@@ -30,7 +30,7 @@ webfetch https://example.com/product-page
 
 **Never** pipe webfetch output directly into context. Always use the file path from the summary line.
 
-**If the fetch fails** (error, 403, all tiers exhausted) and no file is written, skip the read step. Report the failure directly from the CLI output — don't attempt to read a nonexistent file. If a file is written but contains only a bot-challenge or error page (not the requested content), treat it the same as no file.
+**If the fetch fails** (error, 403, all tiers exhausted) and no file is written, skip the read step. Report the failure directly from the CLI output — don't attempt to read a nonexistent file.
 
 ## Commands
 
@@ -67,8 +67,6 @@ You do NOT need to manually retry with `--tier`. Just run `webfetch <url>` and i
 
 ## Decision Tree
 
-> **Step 0 — Always check Known Hard Blocks below first.** If the site is listed there, skip the decision tree and use the indicated method directly.
-
 **For product/e-commerce pages:**
 1. Try `--jsonld` first — ~40% embed structured data (price, name, availability)
 2. If no JSON-LD, use default auto mode (readability + markdown)
@@ -84,29 +82,22 @@ You do NOT need to manually retry with `--tier`. Just run `webfetch <url>` and i
 - If you know the site needs a browser, use `--tier stealth` to skip direct tier
 - Check the summary line for which tier succeeded
 
-## Known Hard Blocks
+## CLI Warnings
 
-Some sites block all fetch methods including Bright Data. **Check this list before applying the Decision Tree** — if the target URL matches, skip straight to the indicated method:
+The CLI automatically detects and warns about common issues:
 
-- **allrecipes.com** — blocks direct, stealth, and unlocker tiers. Use `browse` mode directly. Do not try `--jsonld` or default auto mode first — they will waste calls escalating through tiers that are guaranteed to fail.
+- **Known hard blocks** — the CLI warns when a domain (e.g., allrecipes.com) is known to block all fetch tiers. Follow the suggested alternative (usually `webfetch browse <url>`).
+- **Soft blocks** — if a fetch succeeds but content is suspiciously thin (< 25 tokens), the CLI prints a warning suggesting `--tier stealth`. Follow it.
+- **Challenge pages in browse mode** — `webfetch browse` now detects Cloudflare/Akamai challenge pages and exits with an error instead of writing garbage.
+- **Large files** — the summary line includes a "use Grep for targeted reading" hint when output exceeds 8000 tokens.
 
 ## Troubleshooting
 
 - **Stale or unexpected cached result?** Re-run with `--no-cache` to force a fresh fetch. Do not manually edit cache files.
-- **Fetch succeeds but content is suspiciously thin (< 50 tokens)?** This is likely a soft block — the site returned a minimal stub page without triggering the block detector. Re-run with `--tier stealth` to render with a full browser.
 
 ## Context Budgeting
 
-The summary line (e.g. `Saved to /tmp/webfetch/.../page-a1b2c3.md (12.4KB, ~3200 tokens)`) includes an estimated token count. Use this to decide how to read the output — don't run `wc -l` or similar commands to estimate size:
-
-- **< 2000 tokens**: Safe to Read the whole file
-- **2000-8000 tokens**: Read the file but consider if you need all of it
-- **> 8000 tokens**: Use Grep to search for specific fields instead of reading the whole file — this applies to JSON-LD files too (grep for `"name"`, `"price"`, `"recipeIngredient"`, etc.)
-
-```bash
-# Example: search for price info in a large product page
-```
-Then use the Grep tool on the output file path with pattern like "price|cost|\$".
+The summary line includes an estimated token count. For large files (> 8000 tokens), the CLI adds a hint to use Grep. Follow it — use Grep to search for specific fields instead of reading the whole file. This applies to JSON-LD files too (grep for `"name"`, `"price"`, `"recipeIngredient"`, etc.).
 
 ## Batch Fetching
 

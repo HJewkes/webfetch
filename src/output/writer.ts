@@ -52,7 +52,10 @@ export function writeOutput(input: WriteInput): WriteResult {
   }
 
   const sizeKB = (Buffer.byteLength(input.markdown, 'utf-8') / 1024).toFixed(1);
-  const summary = `Saved to ${mdPath} (${sizeKB}KB, ~${input.estimatedTokens} tokens)`;
+  let summary = `Saved to ${mdPath} (${sizeKB}KB, ~${input.estimatedTokens} tokens)`;
+  if (input.estimatedTokens > 8000) {
+    summary += ' — large file, use Grep for targeted reading';
+  }
 
   return { mdPath, jsonldPath, summary };
 }

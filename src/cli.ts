@@ -10,8 +10,14 @@ import { unlockerFetch } from './fetch/brightdata.js';
 import { directFetch } from './fetch/direct.js';
 import { stealthFetch } from './fetch/patchright.js';
 import { createRouter } from './fetch/router.js';
+import { detectBlock } from './detect/blocker.js';
+import { estimateTokens } from './extract/markdown.js';
 import { VERSION } from './index.js';
 import { buildOutputPath, writeOutput } from './output/writer.js';
+
+const KNOWN_HARD_BLOCKS: Record<string, string> = {
+  'allrecipes.com': 'Use "webfetch browse <url>" instead.',
+};
 
 const program = new Command();
 
@@ -69,6 +75,12 @@ program
       domainOverrides,
     });
 
+    const hardBlock = KNOWN_HARD_BLOCKS[hostname];
+    if (hardBlock) {
+      console.error(`⚠ ${hostname} is a known hard block — all fetch tiers will fail.`);
+      console.error(hardBlock);
+    }
+
     console.error(`Fetching ${url}...`);
     const routerResult = await router.fetch(url);
 
@@ -89,6 +101,10 @@ program
       if (useCache) {
         cache.set(url, path, result.tier);
         cache.setDomainTier(hostname, result.tier);
+      }
+      const rawTokens = estimateTokens(result.html);
+      if (rawTokens < 50) {
+        console.error(`⚠ Content appears thin (~${rawTokens} tokens). The site may be soft-blocking. Try: webfetch ${url} --tier stealth`);
       }
       console.log(`Saved raw HTML to ${path}`);
       return;
@@ -124,6 +140,10 @@ program
     if (useCache) {
       cache.set(url, output.mdPath, result.tier);
       cache.setDomainTier(hostname, result.tier);
+    }
+
+    if (extraction.estimatedTokens < 25) {
+      console.error(`⚠ Content appears thin (~${extraction.estimatedTokens} tokens). The site may be soft-blocking. Try: webfetch ${url} --tier stealth`);
     }
 
     console.log(output.summary);
@@ -173,7 +193,16 @@ program
       }
       console.error('Fetching via Bright Data Web Unlocker...');
       const result = await unlockerFetch(url, { config: config.brightdata });
+      const block = detectBlock(result.status, result.html);
+      if (block.blocked) {
+        console.error(`Browse fetch was blocked: ${block.reason}`);
+        console.error('The page returned a challenge/error page, not real content.');
+        process.exit(1);
+      }
       const extraction = await extractionPipeline(result.html, url);
+      if (extraction.estimatedTokens < 25) {
+        console.error(`⚠ Content appears thin (~${extraction.estimatedTokens} tokens). The site may be soft-blocking even with Bright Data.`);
+      }
       const output = writeOutput({
         url,
         markdown: extraction.markdown,
@@ -186,7 +215,16 @@ program
     } else {
       console.error('Fetching via Patchright stealth browser...');
       const result = await stealthFetch(url);
+      const block = detectBlock(result.status, result.html);
+      if (block.blocked) {
+        console.error(`Browse fetch was blocked: ${block.reason}`);
+        console.error('The page returned a challenge/error page, not real content.');
+        process.exit(1);
+      }
       const extraction = await extractionPipeline(result.html, url);
+      if (extraction.estimatedTokens < 25) {
+        console.error(`⚠ Content appears thin (~${extraction.estimatedTokens} tokens). The site may be soft-blocking even with Patchright.`);
+      }
       const output = writeOutput({
         url,
         markdown: extraction.markdown,
