@@ -104,7 +104,7 @@ program
       }
       const rawTokens = estimateTokens(result.html);
       if (rawTokens < 50) {
-        console.error(`⚠ Content appears thin (~${rawTokens} tokens). The site may be soft-blocking. Try: webfetch ${url} --tier stealth`);
+        console.error(`⚠ Content appears thin (~${rawTokens} tokens). The site may be soft-blocking — consider using browse mode.`);
       }
       console.log(`Saved raw HTML to ${path}`);
       return;
@@ -143,7 +143,7 @@ program
     }
 
     if (extraction.estimatedTokens < 25) {
-      console.error(`⚠ Content appears thin (~${extraction.estimatedTokens} tokens). The site may be soft-blocking. Try: webfetch ${url} --tier stealth`);
+      console.error(`⚠ Content appears thin (~${extraction.estimatedTokens} tokens). The site may be soft-blocking — consider using browse mode.`);
     }
 
     console.log(output.summary);

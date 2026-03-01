@@ -87,7 +87,7 @@ You do NOT need to manually retry with `--tier`. Just run `webfetch <url>` and i
 The CLI automatically detects and warns about common issues:
 
 - **Known hard blocks** — the CLI warns when a domain (e.g., allrecipes.com) is known to block all fetch tiers. Follow the suggested alternative (usually `webfetch browse <url>`).
-- **Soft blocks** — if a fetch succeeds but content is suspiciously thin (< 25 tokens), the CLI prints a warning suggesting `--tier stealth`. Follow it.
+- **Soft blocks** — if a fetch succeeds but content is suspiciously thin (< 25 tokens), the CLI prints a warning. Consider using `webfetch browse <url>` to render with a full browser. Do not manually retry with `--tier` — auto-escalation already tried higher tiers.
 - **Challenge pages in browse mode** — `webfetch browse` now detects Cloudflare/Akamai challenge pages and exits with an error instead of writing garbage.
 - **Large files** — the summary line includes a "use Grep for targeted reading" hint when output exceeds 8000 tokens.
 
