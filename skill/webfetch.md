@@ -93,6 +93,7 @@ Some sites block all fetch methods including Bright Data. **Check this list befo
 ## Troubleshooting
 
 - **Stale or unexpected cached result?** Re-run with `--no-cache` to force a fresh fetch. Do not manually edit cache files.
+- **Fetch succeeds but content is suspiciously thin (< 50 tokens)?** This is likely a soft block — the site returned a minimal stub page without triggering the block detector. Re-run with `--tier stealth` to render with a full browser.
 
 ## Context Budgeting
 
@@ -100,7 +101,7 @@ The summary line (e.g. `Saved to /tmp/webfetch/.../page-a1b2c3.md (12.4KB, ~3200
 
 - **< 2000 tokens**: Safe to Read the whole file
 - **2000-8000 tokens**: Read the file but consider if you need all of it
-- **> 8000 tokens**: Use Grep to search for specific information instead of reading the whole file
+- **> 8000 tokens**: Use Grep to search for specific fields instead of reading the whole file — this applies to JSON-LD files too (grep for `"name"`, `"price"`, `"recipeIngredient"`, etc.)
 
 ```bash
 # Example: search for price info in a large product page
