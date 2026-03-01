@@ -33,6 +33,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
       - run: npm ci
       - run: npm run build
 
@@ -48,6 +49,8 @@ jobs:
 
       - name: Publish to npm
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   github-release:
     needs: publish

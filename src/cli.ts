@@ -12,12 +12,59 @@ import { unlockerFetch } from './fetch/brightdata.js';
 import { directFetch } from './fetch/direct.js';
 import { stealthFetch } from './fetch/patchright.js';
 import { createRouter } from './fetch/router.js';
+import type { FetchResult } from './fetch/types.js';
 import { VERSION } from './index.js';
 import { buildOutputPath, writeOutput } from './output/writer.js';
 
 const KNOWN_HARD_BLOCKS: Record<string, string> = {
   'allrecipes.com': 'Use "webfetch browse <url>" instead.',
 };
+
+function parseUrl(input: string): URL {
+  try {
+    return new URL(input);
+  } catch {
+    console.error(`Invalid URL: ${input}`);
+    process.exit(1);
+  }
+}
+
+function warnIfThin(tokens: number, context?: string) {
+  if (tokens < 25) {
+    const suffix = context ? ` even with ${context}` : '';
+    console.error(
+      `⚠ Content appears thin (~${tokens} tokens). The site may be soft-blocking${suffix} — consider using browse mode.`,
+    );
+  }
+}
+
+async function extractAndWrite(html: string, url: string, outputDir: string) {
+  const extraction = await extractionPipeline(html, url);
+  const output = writeOutput({
+    url,
+    markdown: extraction.markdown,
+    jsonld: extraction.jsonld,
+    title: extraction.title,
+    estimatedTokens: extraction.estimatedTokens,
+    outputDir,
+  });
+
+  warnIfThin(extraction.estimatedTokens);
+  console.log(output.summary);
+  if (output.jsonldPath) {
+    console.log(`JSON-LD also saved to ${output.jsonldPath}`);
+  }
+  return output;
+}
+
+function assertNotBlocked(result: FetchResult) {
+  const block = detectBlock(result.status, result.html);
+  if (block.blocked) {
+    console.error(`Browse fetch was blocked: ${block.reason}`);
+    console.error('The page returned a challenge/error page, not real content.');
+    process.exit(1);
+  }
+}
 
 const program = new Command();
 
@@ -39,17 +86,13 @@ program
       return;
     }
 
+    const parsed = parseUrl(url);
     const tier = options.tier as TierName | undefined;
-
-    const config = loadConfig({
-      output: options.output,
-      tier,
-    });
-
+    const config = loadConfig({ output: options.output, tier });
     const cache = new Cache(config.output.dir, config.cache.ttl);
     const useCache = options.cache !== false;
+    const hostname = parsed.hostname.replace(/^www\./, '');
 
-    // Check cache before fetching
     if (useCache) {
       const cached = cache.get(url);
       if (cached) {
@@ -59,9 +102,7 @@ program
       }
     }
 
-    // Merge domain tier memory into overrides
     const domainOverrides = { ...config.tiers.domainOverrides };
-    const hostname = new URL(url).hostname.replace(/^www\./, '');
     const rememberedTier = cache.getDomainTier(hostname);
     if (rememberedTier && !domainOverrides[hostname]) {
       domainOverrides[hostname] = rememberedTier;
@@ -94,20 +135,19 @@ program
     const { result } = routerResult;
     console.error(`Fetched via tier: ${result.tier} (${result.durationMs}ms)`);
 
+    const updateCache = (filePath: string) => {
+      if (useCache) {
+        cache.set(url, filePath, result.tier);
+        cache.setDomainTier(hostname, result.tier);
+      }
+    };
+
     if (options.raw) {
       const path = buildOutputPath(url, config.output.dir, 'html');
       mkdirSync(dirname(path), { recursive: true });
       writeFileSync(path, result.html, 'utf-8');
-      if (useCache) {
-        cache.set(url, path, result.tier);
-        cache.setDomainTier(hostname, result.tier);
-      }
-      const rawTokens = estimateTokens(result.html);
-      if (rawTokens < 50) {
-        console.error(
-          `⚠ Content appears thin (~${rawTokens} tokens). The site may be soft-blocking — consider using browse mode.`,
-        );
-      }
+      updateCache(path);
+      warnIfThin(estimateTokens(result.html));
       console.log(`Saved raw HTML to ${path}`);
       return;
     }
@@ -121,39 +161,13 @@ program
       const path = buildOutputPath(url, config.output.dir, 'json');
       mkdirSync(dirname(path), { recursive: true });
       writeFileSync(path, JSON.stringify(jsonld, null, 2), 'utf-8');
-      if (useCache) {
-        cache.set(url, path, result.tier);
-        cache.setDomainTier(hostname, result.tier);
-      }
+      updateCache(path);
       console.log(`Saved JSON-LD to ${path}`);
       return;
     }
 
-    const extraction = await extractionPipeline(result.html, url);
-    const output = writeOutput({
-      url,
-      markdown: extraction.markdown,
-      jsonld: extraction.jsonld,
-      title: extraction.title,
-      estimatedTokens: extraction.estimatedTokens,
-      outputDir: config.output.dir,
-    });
-
-    if (useCache) {
-      cache.set(url, output.mdPath, result.tier);
-      cache.setDomainTier(hostname, result.tier);
-    }
-
-    if (extraction.estimatedTokens < 25) {
-      console.error(
-        `⚠ Content appears thin (~${extraction.estimatedTokens} tokens). The site may be soft-blocking — consider using browse mode.`,
-      );
-    }
-
-    console.log(output.summary);
-    if (output.jsonldPath) {
-      console.log(`JSON-LD also saved to ${output.jsonldPath}`);
-    }
+    const output = await extractAndWrite(result.html, url, config.output.dir);
+    updateCache(output.mdPath);
   });
 
 program
@@ -187,8 +201,10 @@ program
   .description('Fetch a URL using Patchright stealth browser or Bright Data')
   .option('--brightdata', 'Use Bright Data Web Unlocker instead of local Patchright')
   .action(async (url: string, opts) => {
+    parseUrl(url);
     const config = loadConfig({});
 
+    let result: FetchResult;
     if (opts.brightdata) {
       if (!config.brightdata.token) {
         console.error('Bright Data API token not configured.');
@@ -196,53 +212,14 @@ program
         process.exit(1);
       }
       console.error('Fetching via Bright Data Web Unlocker...');
-      const result = await unlockerFetch(url, { config: config.brightdata });
-      const block = detectBlock(result.status, result.html);
-      if (block.blocked) {
-        console.error(`Browse fetch was blocked: ${block.reason}`);
-        console.error('The page returned a challenge/error page, not real content.');
-        process.exit(1);
-      }
-      const extraction = await extractionPipeline(result.html, url);
-      if (extraction.estimatedTokens < 25) {
-        console.error(
-          `⚠ Content appears thin (~${extraction.estimatedTokens} tokens). The site may be soft-blocking even with Bright Data.`,
-        );
-      }
-      const output = writeOutput({
-        url,
-        markdown: extraction.markdown,
-        jsonld: extraction.jsonld,
-        title: extraction.title,
-        estimatedTokens: extraction.estimatedTokens,
-        outputDir: config.output.dir,
-      });
-      console.log(output.summary);
+      result = await unlockerFetch(url, { config: config.brightdata });
     } else {
       console.error('Fetching via Patchright stealth browser...');
-      const result = await stealthFetch(url);
-      const block = detectBlock(result.status, result.html);
-      if (block.blocked) {
-        console.error(`Browse fetch was blocked: ${block.reason}`);
-        console.error('The page returned a challenge/error page, not real content.');
-        process.exit(1);
-      }
-      const extraction = await extractionPipeline(result.html, url);
-      if (extraction.estimatedTokens < 25) {
-        console.error(
-          `⚠ Content appears thin (~${extraction.estimatedTokens} tokens). The site may be soft-blocking even with Patchright.`,
-        );
-      }
-      const output = writeOutput({
-        url,
-        markdown: extraction.markdown,
-        jsonld: extraction.jsonld,
-        title: extraction.title,
-        estimatedTokens: extraction.estimatedTokens,
-        outputDir: config.output.dir,
-      });
-      console.log(output.summary);
+      result = await stealthFetch(url);
     }
+
+    assertNotBlocked(result);
+    await extractAndWrite(result.html, url, config.output.dir);
   });
 
 const cacheCmd = program.command('cache').description('Manage fetch cache');

@@ -8,8 +8,3 @@ export interface FetchResult {
   durationMs: number;
   headers: Record<string, string>;
 }
-
-export interface Fetcher {
-  name: TierName;
-  fetch(url: string): Promise<FetchResult>;
-}

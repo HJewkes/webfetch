@@ -1,4 +1,3 @@
-import { type Browser, chromium } from 'patchright';
 import type { FetchResult } from './types.js';
 
 interface StealthFetchOptions {
@@ -13,14 +12,21 @@ export async function stealthFetch(
   const { timeoutMs = 30_000, waitFor } = options;
   const start = performance.now();
 
-  let browser: Browser;
+  let patchright: typeof import('patchright');
   try {
-    browser = await chromium.launch({ headless: true });
-  } catch (err) {
+    patchright = await import('patchright');
+  } catch {
+    throw new Error(
+      'Patchright is not installed. Run: npm install patchright && npx patchright install chromium',
+    );
+  }
+
+  const browser = await patchright.chromium.launch({ headless: true }).catch((err) => {
     throw new Error('Failed to launch Patchright browser. Run: npx patchright install chromium', {
       cause: err,
     });
-  }
+  });
+
   try {
     const context = await browser.newContext({
       viewport: { width: 1920, height: 1080 },

@@ -49,7 +49,6 @@ jobs:
           node-version: '22'
           cache: 'npm'
       - run: npm ci
-      - run: npx patchright install chromium
       - run: npx vitest run --coverage --exclude src/fetch/patchright.test.ts
       - uses: codecov/codecov-action@v5
         with:

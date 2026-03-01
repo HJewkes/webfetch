@@ -22,19 +22,20 @@
     "lint": "biome check . && tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "format": "biome format --write .",
-    "format:check": "biome check ."
+    "format:check": "biome check .",
+    "prepublishOnly": "npm run lint && npm test && npm run build"
   },
   "dependencies": {
     "commander": "^14.0.0",
     "defuddle": "^0.7.0",
-    "jsdom": "^25.0.0",
     "node-html-markdown": "^2.0.0",
-    "patchright": "^1.57.0",
     "undici": "^7.0.0"
+  },
+  "optionalDependencies": {
+    "patchright": "^1.57.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.4",
-    "@types/jsdom": "^21.1.0",
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^3.2.4",
     "tsx": "^4.0.0",
