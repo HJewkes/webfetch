@@ -6,7 +6,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
-      exclude: ['src/cli.ts', 'src/fetch/patchright.ts', 'src/fetch/types.ts', 'vitest.config.ts'],
+      include: ['src/**'],
+      exclude: ['src/cli.ts', 'src/fetch/patchright.ts', 'src/fetch/types.ts'],
       thresholds: {
         statements: 85,
         branches: 70,
